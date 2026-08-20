@@ -25,7 +25,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/icon.png"],
+    "icon": ["icons/icon.png", "icons/icon.ico", "icons/icon.icns"],
     "shortDescription": "OPENTCS — bawa API key AI kamu sendiri",
     "longDescription": "OPENTCS adalah client chat AI open-source. Kamu paste API key Claude/Gemini/OpenAI milikmu sendiri, semua request langsung dari perangkatmu ke provider — tanpa perantara."
   }
