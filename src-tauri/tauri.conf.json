@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OPENTCS",
+  "version": "0.1.0",
+  "identifier": "com.opentcs.app",
+  "build": {
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OPENTCS",
+        "width": 1120,
+        "height": 740,
+        "minWidth": 720,
+        "minHeight": 480,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://api.anthropic.com https://generativelanguage.googleapis.com https://api.openai.com https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.png"],
+    "shortDescription": "OPENTCS — bawa API key AI kamu sendiri",
+    "longDescription": "OPENTCS adalah client chat AI open-source. Kamu paste API key Claude/Gemini/OpenAI milikmu sendiri, semua request langsung dari perangkatmu ke provider — tanpa perantara."
+  }
+}

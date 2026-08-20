@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPENTCS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="menu-btn" id="menuBtn">☰</div>
+
+<aside class="rail" id="rail">
+  <div class="brand">
+    <div class="brand-mark">O</div>
+    <div>
+      <div class="brand-word">OPENTCS</div>
+      <div class="brand-sub">bawa API key-mu sendiri</div>
+    </div>
+  </div>
+
+  <div class="panel-label">Provider</div>
+  <div class="field-row">
+    <select class="field" id="provider">
+      <option value="anthropic">Claude (Anthropic)</option>
+      <option value="google">Gemini (Google)</option>
+      <option value="openai">GPT (OpenAI)</option>
+      <option value="custom">Custom endpoint</option>
+    </select>
+  </div>
+
+  <div class="field-row">
+    <input class="field" id="model" placeholder="model, mis: claude-sonnet-4-5">
+  </div>
+
+  <div class="panel-label">API Key</div>
+  <div class="field-row">
+    <input class="field" id="apiKey" type="password" placeholder="Paste API key kamu di sini">
+  </div>
+  <div class="field-row" id="customUrlRow" style="display:none;">
+    <input class="field" id="customUrl" placeholder="https://endpoint-kamu.com/...">
+  </div>
+
+  <button class="btn btn-primary" id="saveKeyBtn">Simpan lokal &amp; hubungkan</button>
+
+  <div class="panel-label">Backup (opsional)</div>
+  <div class="field-row">
+    <input class="field" id="vpsUrl" placeholder="https://vps-kamu.com (kosongkan jika tidak pakai)">
+  </div>
+  <button class="btn btn-ghost" id="backupBtn">Cadangkan key terenkripsi ke server</button>
+  <button class="btn btn-ghost" id="restoreBtn">Pulihkan dari server</button>
+  <div class="note" id="backupNote"></div>
+
+  <div class="signal-box">
+    <div class="signal-status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">key belum diatur</span>
+    </div>
+    <svg id="wave" viewBox="0 0 260 36" preserveAspectRatio="none">
+      <path class="wave-path" id="wavePath" d="M0,18 L260,18"/>
+    </svg>
+  </div>
+
+  <div class="rail-footer">
+    API key kamu disimpan <b>di perangkat ini saja</b> secara default, dan
+    request dikirim langsung dari sini ke provider. Server OPENTCS (kalau ada)
+    tidak pernah melihat isi obrolanmu.
+  </div>
+</aside>
+
+<main class="chat-col">
+  <div class="chat-scroll" id="scroll">
+    <div class="chat-inner" id="chatInner">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-title">Halo, ini OPENTCS 👋</div>
+        <div class="empty-sub">Pilih provider &amp; paste API key kamu di panel kiri, lalu mulai ngobrol. Semua berjalan lokal di perangkatmu.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-bar">
+    <div class="input-inner">
+      <textarea id="msgInput" rows="1" placeholder="Tulis pesan..."></textarea>
+      <button class="send-btn" id="sendBtn" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M4 20L20 12L4 4V10L14 12L4 14V20Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="hint">Enter untuk kirim · Shift+Enter untuk baris baru</div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

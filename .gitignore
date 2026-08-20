@@ -1,0 +1,15 @@
+# --- Rahasia & environment ---
+.env
+/server/.env
+/server/data.json
+
+# --- Node.js ---
+/node_modules
+/server/node_modules
+
+# --- Rust / Tauri build output ---
+/src-tauri/target
+/src-tauri/gen
+
+# --- OS ---
+.DS_Store
