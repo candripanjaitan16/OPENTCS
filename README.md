@@ -1,9 +1,18 @@
-# OPENTCS
+<p align="center">
+  <img src="src-tauri/icons/icon.png" alt="OPENTCS icon" width="96" height="96">
+</p>
 
-Aplikasi desktop chat AI open-source. User **bawa API key sendiri** (Claude,
-Gemini, GPT, atau endpoint OpenAI-compatible seperti Groq) — request dikirim
-langsung dari perangkat mereka ke provider, tanpa perantara. Tidak ada sistem
-akun/login.
+<h1 align="center">OPENTCS</h1>
+
+<p align="center">
+  Aplikasi desktop chat AI open-source — bawa API key sendiri, tanpa akun, tanpa perantara.
+</p>
+
+---
+
+User **bawa API key sendiri** (Claude, Gemini, GPT, atau endpoint
+OpenAI-compatible seperti Groq) — request dikirim langsung dari perangkat
+mereka ke provider, tanpa perantara. Tidak ada sistem akun/login.
 
 ```
 OPENTCS/
@@ -77,7 +86,18 @@ Server jalan di `http://localhost:3000`. Isi URL itu di kolom "Backup" pada
 app buat nyoba — **bukan** untuk dibuka langsung di browser, karena ini API
 polos tanpa halaman UI.
 
-## Build installer (Windows .msi/.exe, Linux .deb/.AppImage)
+## Install lewat GitHub Release (tanpa build sendiri)
+
+Cara paling gampang buat siapa pun yang cuma mau *pakai*, bukan develop:
+
+1. Buka tab [**Releases**](../../releases)
+2. Download installer sesuai OS:
+   - **Debian/Ubuntu/Linux Mint** → `.deb`
+   - **Fedora/RHEL-based** → `.rpm`
+   - **Distro apa pun (tanpa install)** → `.AppImage`
+3. Install & buka seperti app biasa
+
+## Build installer sendiri (Windows .msi/.exe, Linux .deb/.AppImage)
 
 Paling gampang lewat **GitHub Actions** (sudah disiapkan di
 `.github/workflows/build.yml`) — kamu gak perlu install toolchain Windows
@@ -88,6 +108,10 @@ di Linux:
 3. Actions otomatis build untuk Linux & Windows, lalu bikin **Draft
    Release** berisi installer-nya
 4. Review draft-nya di tab "Releases", lalu publish
+
+> Build Linux dijalankan di runner `ubuntu-22.04` (bukan `ubuntu-latest`)
+> supaya binary yang dihasilkan tetap kompatibel dengan sistem yang GLIBC-nya
+> lebih lama, seperti Linux Mint 21.x.
 
 Build manual (kalau mau coba di komputer sendiri dulu):
 ```bash
@@ -113,7 +137,8 @@ Hasilnya ada di `src-tauri/target/release/bundle/`.
 - [ ] Auto-update lewat Tauri updater
 - [ ] Ganti `data.json` di backend ke SQLite kalau user mulai banyak
 - [ ] UI untuk atur system prompt/persona AI tanpa edit kode
+- [ ] Build Windows yang stabil di GitHub Actions
 
 ---
 
-Dibuat oleh **Candri**.
+<p align="center">Dibuat oleh <strong>Candri</strong></p>
