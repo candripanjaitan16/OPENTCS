@@ -3,7 +3,7 @@ name: Build OPENTCS Desktop
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch: {}
 
 jobs:
@@ -12,10 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-latest
-            args: ''
+          - platform: ubuntu-22.04
+            args: ""
           - platform: windows-latest
-            args: ''
+            args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -25,20 +25,19 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Linux build deps
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf build-essential curl wget file libssl-dev libgtk-3-dev
 
       - name: Build & package (Tauri)
         uses: tauri-apps/tauri-action@v0
-        # tauri-action auto-detects Tauri v1 vs v2 from Cargo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'OPENTCS ${{ github.ref_name }}'
+          releaseName: "OPENTCS ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          projectPath: '.'
+          projectPath: "."
           args: ${{ matrix.args }}
