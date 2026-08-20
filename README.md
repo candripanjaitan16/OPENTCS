@@ -39,16 +39,15 @@ juga bisa disambungkan ke **endpoint custom** apa pun yang OpenAI-compatible
 — termasuk [Groq](https://console.groq.com/keys) (gratis & cepat untuk
 eksperimen). Untuk provider custom, isi:
 
-| Field    | Isi                                                              |
-| -------- | ---------------------------------------------------------------- |
-| Endpoint | `https://api.groq.com/openai/v1/chat/completions`                |
-| API Key  | key dari console provider terkait                                |
-| Model    | cek daftar model aktif via `GET /v1/models` di provider tersebut |
+| Field | Isi |
+|---|---|
+| Endpoint | `https://api.groq.com/openai/v1/chat/completions` |
+| API Key | key dari console provider terkait |
+| Model | cek daftar model aktif via `GET /v1/models` di provider tersebut |
 
 ## Menjalankan mode development
 
 ### Prasyarat
-
 - [Node.js](https://nodejs.org) 18+
 - [Rust](https://rustup.rs)
 - Tauri CLI: `cargo install tauri-cli`
@@ -61,23 +60,19 @@ eksperimen). Untuk provider custom, isi:
   (lihat juga [prasyarat resmi Tauri](https://tauri.app/start/prerequisites/))
 
 ### Jalankan app desktop
-
 ```bash
 cargo tauri dev
 ```
-
 Ini buka jendela app langsung dari folder `dist/` — gak perlu bundler
 tambahan karena frontend-nya vanilla HTML/CSS/JS.
 
 ### Jalankan backend (opsional, kalau mau test fitur backup)
-
 ```bash
 cd server
 cp .env.example .env      # lalu isi MASTER_KEY dengan: openssl rand -hex 32
 npm install
 npm run dev
 ```
-
 Server jalan di `http://localhost:3000`. Isi URL itu di kolom "Backup" pada
 app buat nyoba — **bukan** untuk dibuka langsung di browser, karena ini API
 polos tanpa halaman UI.
@@ -95,11 +90,9 @@ di Linux:
 4. Review draft-nya di tab "Releases", lalu publish
 
 Build manual (kalau mau coba di komputer sendiri dulu):
-
 ```bash
 cargo tauri build
 ```
-
 Hasilnya ada di `src-tauri/target/release/bundle/`.
 
 ## Deploy backend ke VPS
