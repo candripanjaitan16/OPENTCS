@@ -2271,7 +2271,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "opentcs"
+name = "chantecno"
 version = "0.1.0"
 dependencies = [
  "serde",

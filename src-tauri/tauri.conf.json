@@ -1,15 +1,15 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OPENTCS",
+  "productName": "chantecno",
   "version": "0.1.0",
-  "identifier": "com.opentcs.app",
+  "identifier": "com.chantecno.app",
   "build": {
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
-        "title": "OPENTCS",
+        "title": "chantecno",
         "width": 1120,
         "height": 740,
         "minWidth": 720,
@@ -26,7 +26,7 @@
     "active": true,
     "targets": "all",
     "icon": ["icons/icon.png", "icons/icon.ico", "icons/icon.icns"],
-    "shortDescription": "OPENTCS — bawa API key AI kamu sendiri",
-    "longDescription": "OPENTCS adalah client chat AI open-source. Kamu paste API key Claude/Gemini/OpenAI milikmu sendiri, semua request langsung dari perangkatmu ke provider — tanpa perantara."
+    "shortDescription": "chantecno — bawa API key AI kamu sendiri",
+    "longDescription": "chantecno adalah client chat AI open-source. Kamu paste API key Claude/Gemini/OpenAI milikmu sendiri, semua request langsung dari perangkatmu ke provider — tanpa perantara."
   }
 }
