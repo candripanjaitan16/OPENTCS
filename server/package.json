@@ -1,8 +1,8 @@
 {
-  "name": "chantecno-server",
+  "name": "chanthecno-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Backend opsional chantecno: backup API key terenkripsi, tanpa akun.",
+  "description": "Backend opsional chanthecno: backup API key terenkripsi, tanpa akun.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="src-tauri/icons/icon.png" alt="chantecno icon" width="96" height="96">
+  <img src="src-tauri/icons/icon.png" alt="chanthecno icon" width="96" height="96">
 </p>
 
-<h1 align="center">chantecno</h1>
+<h1 align="center">chanthecno</h1>
 
 <p align="center">
   Aplikasi desktop chat AI open-source — bawa API key sendiri, tanpa akun, tanpa perantara.
@@ -15,7 +15,7 @@ OpenAI-compatible seperti Groq) — request dikirim langsung dari perangkat
 mereka ke provider, tanpa perantara. Tidak ada sistem akun/login.
 
 ```
-chantecno/
+chanthecno/
 ├── dist/              # Frontend (HTML/CSS/JS) — inilah yang tampil di jendela app
 ├── src-tauri/          # Shell desktop (Rust + Tauri)
 ├── server/              # Backend VPS OPSIONAL — backup API key terenkripsi

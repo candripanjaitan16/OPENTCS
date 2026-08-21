@@ -99,4 +99,4 @@ app.delete('/api/keys/:deviceId', (req, res) => {
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => console.log(`chantecno backend jalan di port ${PORT}`));
+app.listen(PORT, () => console.log(`chanthecno backend jalan di port ${PORT}`));

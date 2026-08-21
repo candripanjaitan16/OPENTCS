@@ -1,4 +1,4 @@
-name: Build ChanTecno Desktop
+name: Build ChanThecno Desktop
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "chantecno ${{ github.ref_name }}"
+          releaseName: "chanthecno ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
           projectPath: "."

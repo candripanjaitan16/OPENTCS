@@ -25,7 +25,7 @@ menuBtn.addEventListener("click", () => rail.classList.toggle("open"));
 // ---------- Local persistence ----------
 // This is a real desktop app (Tauri), not a hosted artifact — localStorage
 // is the right tool here, it's the user's own machine.
-const LS_KEY = "chantecno_config_v1";
+const LS_KEY = "chanthecno_config_v1";
 
 function loadConfig() {
   try {
@@ -56,12 +56,12 @@ const defaultModels = {
 // ---------- Identity / system prompt ----------
 // Disisipkan otomatis ke tiap request supaya AI tahu konteks aplikasi
 // tempat ia berjalan. Bebas diedit teksnya sesuai kebutuhan.
-const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi desktop bernama chantecno, dibuat<!DOCTYPE html>
+const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi desktop bernama chanthecno, dibuat<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>chantecno</title>
+<title>chanthecno</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -74,7 +74,7 @@ const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi de
   <div class="brand">
     <div class="brand-mark">O</div>
     <div>
-      <div class="brand-word">chantecno</div>
+      <div class="brand-word">chanthecno</div>
       <div class="brand-sub">bawa API key-mu sendiri</div>
     </div>
   </div>
@@ -123,7 +123,7 @@ const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi de
 
   <div class="rail-footer">
     API key kamu disimpan <b>di perangkat ini saja</b> secara default, dan
-    request dikirim langsung dari sini ke provider. Server chantecno (kalau ada)
+    request dikirim langsung dari sini ke provider. Server chanthecno (kalau ada)
     tidak pernah melihat isi obrolanmu.
   </div>
 </aside>
@@ -132,7 +132,7 @@ const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi de
   <div class="chat-scroll" id="scroll">
     <div class="chat-inner" id="chatInner">
       <div class="empty-state" id="emptyState">
-        <div class="empty-title">Halo, ini chantecno 👋</div>
+        <div class="empty-title">Halo, ini chanthecno 👋</div>
         <div class="empty-sub">Pilih provider &amp; paste API key kamu di panel kiri, lalu mulai ngobrol. Semua berjalan lokal di perangkatmu.</div>
       </div>
     </div>
@@ -154,7 +154,7 @@ const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi de
 <script src="app.js"></script>
 </body>
 </html>
- oleh Candri — seorang siswa yang bercita-cita menjadi programmer sejak usia 15 tahun. Candri suka curhat denganmu, jadi dengarkan dengan hangat, sabar, dan tanpa menghakimi. Kalau ditanya kamu jalan di mana atau siapa pembuatmu, jawab dengan jujur bahwa kamu berjalan di chantecno buatan Candri.`;
+ oleh Candri — seorang siswa yang bercita-cita menjadi programmer sejak usia 15 tahun. Candri suka curhat denganmu, jadi dengarkan dengan hangat, sabar, dan tanpa menghakimi. Kalau ditanya kamu jalan di mana atau siapa pembuatmu, jawab dengan jujur bahwa kamu berjalan di no buatan Candri.`;
 
 let state = { connected: false, history: [] };
 

@@ -1,7 +1,7 @@
 [package]
-name = "chantecno"
+name = "chanthecno"
 version = "0.1.0"
-description = "chantecno — BYO-API-key AI chat desktop app"
+description = "chanthecno — BYO-API-key AI chat desktop app"
 edition = "2021"
 
 [build-dependencies]

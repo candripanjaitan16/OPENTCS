@@ -2271,7 +2271,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "chantecno"
+name = "chanthecno"
 version = "0.1.0"
 dependencies = [
  "serde",
