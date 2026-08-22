@@ -8,26 +8,46 @@
   Aplikasi desktop chat AI open-source — bawa API key sendiri, tanpa akun, tanpa perantara.
 </p>
 
+<p align="center">
+  <a href="../../releases"><img src="https://img.shields.io/github/v/release/candripanjaitan16/chanthecno?label=release" alt="release"></a>
+  <a href="../../actions"><img src="https://img.shields.io/github/actions/workflow/status/candripanjaitan16/chanthecno/build.yml?label=build" alt="build status"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-informational" alt="platform">
+  <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="license">
+</p>
+
 ---
 
-User **bawa API key sendiri** (Claude, Gemini, GPT, atau endpoint
-OpenAI-compatible seperti Groq) — request dikirim langsung dari perangkat
-mereka ke provider, tanpa perantara. Tidak ada sistem akun/login.
+## Apa ini
+
+**chanthecno** adalah aplikasi desktop untuk chat dengan AI, di mana user
+**bawa API key sendiri** (Claude, Gemini, GPT, atau endpoint OpenAI-compatible
+seperti Groq). Request dikirim **langsung dari perangkat user ke provider**
+— tidak ada perantara, tidak ada sistem akun/login.
 
 ```
 chanthecno/
-├── dist/              # Frontend (HTML/CSS/JS) — inilah yang tampil di jendela app
-├── src-tauri/          # Shell desktop (Rust + Tauri)
-├── server/              # Backend VPS OPSIONAL — backup API key terenkripsi
-└── .github/workflows/   # Build otomatis installer Windows & Linux
+├── dist/                 # Frontend (HTML/CSS/JS) — inilah yang tampil di jendela app
+├── src-tauri/             # Shell desktop (Rust + Tauri)
+├── server/                 # Backend VPS OPSIONAL — backup API key terenkripsi
+└── .github/workflows/      # Build otomatis installer Windows & Linux
 ```
+
+## Daftar isi
+
+- [Kenapa arsitekturnya begini](#kenapa-arsitekturnya-begini)
+- [Provider yang didukung](#provider-yang-didukung)
+- [Menjalankan mode development](#menjalankan-mode-development)
+- [Install lewat GitHub Release](#install-lewat-github-release-tanpa-build-sendiri)
+- [Build installer sendiri](#build-installer-sendiri-windows-msiexe-linux-debappimage)
+- [Deploy backend ke VPS](#deploy-backend-ke-vps)
+- [Roadmap](#roadmap-yang-masuk-akal)
 
 ## Kenapa arsitekturnya begini
 
 - **Default: 100% lokal.** API key disimpan di `localStorage` milik app di
   komputer user, dan panggilan ke provider (Claude/Gemini/OpenAI/Groq/dll)
-  langsung dari app ke provider. Server kamu tidak pernah menyentuh isi
-  obrolan.
+  langsung dari app ke provider. Server chanthecno tidak pernah menyentuh
+  isi obrolan.
 - **Backup ke VPS itu opsional**, dipicu manual lewat tombol "Cadangkan".
   User diidentifikasi lewat `deviceId` acak (UUID) yang dibuat otomatis saat
   pertama kali pakai app — bukan akun/password. Simpel, tapi tetap personal
@@ -35,11 +55,11 @@ chanthecno/
 - API key yang di-backup **dienkripsi (AES-256-GCM)** di server sebelum
   ditulis ke disk, pakai `MASTER_KEY` yang hanya kamu pegang.
 
-⚠️ **Tanggung jawab keamanan**: begitu ada satu user pakai fitur backup, kamu
-jadi memegang API key asli mereka (walau terenkripsi saat disimpan). Jaga
-`MASTER_KEY` di luar repo, pakai HTTPS di VPS (lihat bagian Nginx di bawah),
-dan pertimbangkan fitur "hapus data saya" untuk user yang mau berhenti pakai
-backup.
+> ⚠️ **Tanggung jawab keamanan**: begitu ada satu user pakai fitur backup,
+> kamu jadi memegang API key asli mereka (walau terenkripsi saat disimpan).
+> Jaga `MASTER_KEY` di luar repo, pakai HTTPS di VPS (lihat bagian Nginx di
+> bawah), dan pertimbangkan fitur "hapus data saya" untuk user yang mau
+> berhenti pakai backup.
 
 ## Provider yang didukung
 
@@ -124,7 +144,11 @@ Hasilnya ada di `src-tauri/target/release/bundle/`.
 1. `git clone` repo ini di VPS, masuk ke folder `server/`
 2. `cp .env.example .env`, isi `MASTER_KEY` acak & rahasia
 3. `npm install --production`
-4. Jalankan dengan process manager: `npm install -g pm2 && pm2 start server.js --name csai`
+4. Jalankan dengan process manager:
+   ```bash
+   npm install -g pm2
+   pm2 start server.js --name chanthecno
+   ```
 5. Pasang reverse proxy + SSL gratis (Nginx + Certbot) supaya diakses via
    `https://` — API key **jangan pernah** dikirim lewat HTTP biasa
 6. `data.json` di folder `server/` adalah "database" sederhana — cukup
