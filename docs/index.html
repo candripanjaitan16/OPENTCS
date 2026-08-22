@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chanthecno — Chat AI Desktop, Bawa API Key Sendiri</title>
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/candripanjaitan16/chanthecno/main/src-tauri/icons/32x32.png" type="image/png">
+    <meta name="description" content="Aplikasi desktop untuk chat AI. Bawa API key sendiri, tanpa login, tanpa perantara. Support Claude, Gemini, GPT, dan OpenAI-compatible endpoints.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ff88;
+            --primary-dark: #00cc6a;
+            --secondary: #00d4ff;
+            --bg-dark: #0a0e27;
+            --bg-darker: #05070f;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b5c1;
+            --border-color: #1a1f3a;
+            --accent-danger: #ff4757;
+            --accent-warning: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-center a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-center a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .nav-end {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .github-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .github-link:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        .github-star {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            padding: 0.5rem 1.2rem;
+            border: 1.5px solid var(--primary);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .github-star:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem 6rem;
+            min-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.15), transparent);
+            border-radius: 50%;
+            top: -200px;
+            left: -200px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            bottom: -200px;
+            right: -200px;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .icon-app {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            padding: 0.5rem;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            animation: pulse-icon 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(0, 255, 136, 0.6); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 650px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            padding: 0.85rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .features {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 3rem;
+            color: var(--primary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .download-section {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .download-section h2 {
+            font-size: clamp(1.8rem, 4vw, 2rem);
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .os-detected {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .os-detected span {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .btn-download {
+            padding: 0.9rem 2rem;
+            background: var(--secondary);
+            color: var(--bg-dark);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            font-size: 0.95rem;
+        }
+
+        .btn-download:hover {
+            background: #00b8cc;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .download-alternatives {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        .download-alternatives a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .download-alternatives a:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .screenshot-section {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+
+        .screenshot-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .screenshot-gallery > div {
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-gallery > div:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .screenshot-placeholder {
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screenshot-placeholder:hover {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .screenshot-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-gallery > div:hover .screenshot-img {
+            transform: scale(1.02);
+        }
+
+        .docs-section {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .doc-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .doc-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .doc-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .doc-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .doc-card code {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 0.5rem;
+            overflow-x: auto;
+        }
+
+        footer {
+            background: rgba(5, 7, 15, 0.95);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .footer-section p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            text-align: center;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        .social-links a:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 0.75rem 1rem;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-center {
+                width: 100%;
+                justify-content: center;
+                gap: 1.5rem;
+            }
+
+            .hero {
+                padding: 3rem 1rem 4rem;
+                min-height: auto;
+            }
+
+            .hero h1 {
+                margin-bottom: 1.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .features-grid,
+            .docs-grid,
+            .screenshot-gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+            }
+
+            .btn-download {
+                width: 100%;
+            }
+
+            .footer-top {
+                text-align: center;
+                grid-template-columns: 1fr;
+            }
+
+            .footer-section a {
+                display: inline;
+                margin: 0 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .icon-app {
+                width: 100px;
+                height: 100px;
+            }
+
+            .nav-center {
+                display: none;
+            }
+
+            nav {
+                justify-content: space-between;
+            }
+
+            .nav-end {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .github-link,
+            .github-star {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#" class="logo">chanthecno</a>
+            <ul class="nav-center">
+                <li><a href="#features">Fitur</a></li>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#docs">Dokumentasi</a></li>
+            </ul>
+            <div class="nav-end">
+                <a href="https://github.com/candripanjaitan16/chanthecno" target="_blank" class="github-link">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="https://github.com/candripanjaitan16/chanthecno" target="_blank" class="github-star" id="github-stars">
+                    <i class="fas fa-star"></i> <span id="star-count">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <img src="https://raw.githubusercontent.com/candripanjaitan16/chanthecno/main/src-tauri/icons/icon.png" alt="chanthecno" class="icon-app">
+            <h1>Chat AI <span class="highlight">Desktop</span><br>100% Lokal, Tanpa Perantara</h1>
+            <p>Aplikasi desktop untuk percakapan dengan AI. Bawa API key sendiri, tanpa login, tanpa sistem akun. Request dikirim langsung dari perangkat Anda ke provider.</p>
+            <div class="cta-buttons">
+                <a href="#download" class="btn btn-primary">Mulai Sekarang</a>
+                <a href="https://github.com/candripanjaitan16/chanthecno" target="_blank" class="btn btn-secondary">Lihat di GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <h2 class="section-title">Fitur Unggulan</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>100% Lokal</h3>
+                <p>API key tersimpan di perangkat Anda. Tanpa akun, tanpa login, tanpa perantara. Privasi terjamin sepenuhnya.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Multi-Provider</h3>
+                <p>Support Claude, Gemini, GPT, dan endpoint OpenAI-compatible seperti Groq. Pilih sesuai kebutuhan Anda.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Cepat & Ringan</h3>
+                <p>Dibangun dengan Tauri + Rust. Desktop app yang responsif tanpa overhead berat seperti Electron.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Backup Terenkripsi</h3>
+                <p>Fitur backup API key opsional ke VPS dengan enkripsi AES-256-GCM. Kontrol penuh di tangan Anda.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🖥️</div>
+                <h3>Cross-Platform</h3>
+                <p>Jalan di Windows, Linux, dan macOS. Installer siap pakai atau build sendiri dari source.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📖</div>
+                <h3>Open Source</h3>
+                <p>MIT License. Kode terbuka, transparan, dan dapat diaudit. Kontribusi dan feedback welcome.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="download-section">
+        <h2>Download Sekarang</h2>
+        <div class="os-detected">
+            Sistem operasi Anda: <span id="os-name">Mendeteksi...</span>
+        </div>
+        <div class="download-buttons" id="download-buttons">
+            <button class="btn-download" disabled>Mendeteksi OS...</button>
+        </div>
+        <div class="download-alternatives">
+            <p>Tidak sesuai? <a href="https://github.com/candripanjaitan16/chanthecno/releases" target="_blank">Lihat semua versi di GitHub Releases</a></p>
+        </div>
+    </section>
+
+    <section id="docs" class="docs-section">
+        <h2 class="section-title">Mulai Menggunakan</h2>
+        <div class="docs-grid">
+            <div class="doc-card">
+                <h3>1. Download & Install</h3>
+                <p>Unduh installer sesuai OS Anda dari halaman download atau <a href="https://github.com/candripanjaitan16/chanthecno/releases" target="_blank" style="color: var(--primary);">GitHub Releases</a>. Proses instalasi standard seperti aplikasi biasa.</p>
+            </div>
+            <div class="doc-card">
+                <h3>2. Pilih Provider</h3>
+                <p>Buka app dan pilih provider AI yang ingin digunakan. Built-in support untuk Claude, Gemini, OpenAI, atau custom endpoint OpenAI-compatible.</p>
+            </div>
+            <div class="doc-card">
+                <h3>3. Masukkan API Key</h3>
+                <p>Masukkan API key dari provider pilihan Anda. Key disimpan lokal di komputer Anda, tidak pernah dikirim ke server chanthecno.</p>
+                <code>Dapatkan key di: console.anthropic.com, platform.openai.com, dll</code>
+            </div>
+            <div class="doc-card">
+                <h3>4. Mulai Chat</h3>
+                <p>Ketik pertanyaan atau instruksi kepada AI. Response dikirim langsung dari app Anda ke provider, lalu kembali ke layar Anda.</p>
+            </div>
+            <div class="doc-card">
+                <h3>Custom Endpoint</h3>
+                <p>Untuk provider lain, gunakan mode custom endpoint. Contoh: Groq, self-hosted models, atau endpoint private.</p>
+                <code>https://api.groq.com/openai/v1/chat/completions</code>
+            </div>
+            <div class="doc-card">
+                <h3>Backup (Opsional)</h3>
+                <p>Fitur backup terenkripsi tersedia untuk menyimpan API key di VPS. Aktifkan hanya jika Anda percaya dan menjalankan VPS sendiri.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-section">
+                    <h4>Tentang</h4>
+                    <p>chanthecno adalah aplikasi desktop open-source untuk chat dengan AI. Bawa API key sendiri, tanpa perantara, privasi terjamin.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Tautan Penting</h4>
+                    <ul>
+                        <li><a href="https://github.com/candripanjaitan16/chanthecno" target="_blank">Repository GitHub</a></li>
+                        <li><a href="https://github.com/candripanjaitan16/chanthecno/releases" target="_blank">Download & Releases</a></li>
+                        <li><a href="https://github.com/candripanjaitan16/chanthecno/issues" target="_blank">Report Issues</a></li>
+                        <li><a href="https://github.com/candripanjaitan16/chanthecno#readme" target="_blank">Dokumentasi Lengkap</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Pembuat</h4>
+                    <p><strong><a href="https://github.com/candripanjaitan16" target="_blank">Candri</a></strong></p>
+                    <p>Self-taught programmer dari Indonesia yang passionate tentang AI security dan open-source development.</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="social-links">
+                    <a href="https://github.com/candripanjaitan16" target="_blank" title="GitHub Profile">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://github.com/candripanjaitan16/chanthecno/stargazers" target="_blank" title="Star on GitHub">
+                        <i class="fas fa-star"></i>
+                    </a>
+                    <a href="https://github.com/candripanjaitan16/chanthecno/issues" target="_blank" title="Issues">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </a>
+                </div>
+                <p style="font-weight: 600;">© 2026 chanthecno — Chat AI Desktop</p>
+                <p>MIT License • Open Source • Made by Candri</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Fetch GitHub Stars
+        async function fetchGitHubStars() {
+            try {
+                const response = await fetch('https://api.github.com/repos/candripanjaitan16/chanthecno');
+                const data = await response.json();
+                const stars = data.stargazers_count;
+                
+                const starCount = document.getElementById('star-count');
+                if (starCount) {
+                    if (stars >= 1000) {
+                        starCount.textContent = (stars / 1000).toFixed(1) + 'k';
+                    } else {
+                        starCount.textContent = stars;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not fetch GitHub stars');
+            }
+        }
+
+        fetchGitHubStars();
+
+        function detectOS() {
+            const osName = document.getElementById('os-name');
+            const downloadButtons = document.getElementById('download-buttons');
+            const ua = navigator.userAgent.toLowerCase();
+
+            let os = 'Unknown';
+            let buttons = '';
+
+            if (ua.indexOf('win') > -1) {
+                os = 'Windows';
+                buttons = `
+                    <a href="https://github.com/candripanjaitan16/chanthecno/releases/download/v1.1.3/chanthecno_v1.1.3_x64_en-US.msi" class="btn-download">📥 Download .MSI (Installer)</a>
+                    <a href="https://github.com/candripanjaitan16/chanthecno/releases/download/v1.1.3/chanthecno_v1.1.3_x64-setup.exe" class="btn-download">📥 Download .EXE</a>
+                `;
+            } else if (ua.indexOf('linux') > -1) {
+                os = 'Linux';
+                buttons = `
+                    <a href="https://github.com/candripanjaitan16/chanthecno/releases/download/v1.1.3/chanthecno_v1.1.3_amd64.deb" class="btn-download">📥 Download .DEB</a>
+                    <a href="https://github.com/candripanjaitan16/chanthecno/releases/download/v1.1.3/chanthecno_v1.1.3_amd64.AppImage" class="btn-download">📥 Download .AppImage</a>
+                    <a href="https://github.com/candripanjaitan16/chanthecno/releases/download/v1.1.3/chanthecno-v1.1.3-1.x86_64.rpm" class="btn-download">📥 Download .RPM</a>
+                `;
+            } else if (ua.indexOf('mac') > -1) {
+                os = 'macOS';
+                buttons = `
+                    <div style="text-align: center; padding: 1rem;">
+                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">macOS support coming soon!</p>
+                        <a href="https://github.com/candripanjaitan16/chanthecno/releases" class="btn btn-secondary" style="display: inline-block;">Lihat semua versi</a>
+                    </div>
+                `;
+            }
+
+            osName.textContent = os;
+            downloadButtons.innerHTML = buttons;
+        }
+
+        detectOS();
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                if (this.getAttribute('href') !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
