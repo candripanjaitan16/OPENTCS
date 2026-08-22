@@ -175,7 +175,7 @@ select.field{
   background:var(--surface-2);
   border:1px solid var(--border);
   border-radius:12px;
-  padding:14px 14px 10px;
+  padding:14px;
 }
 
 .signal-status{
@@ -185,7 +185,7 @@ select.field{
   font-family:'JetBrains Mono',monospace;
   font-size:11.5px;
   color:var(--muted);
-  margin-bottom:8px;
+  margin-bottom:12px;
 }
 
 .dot{
@@ -205,20 +205,85 @@ select.field{
   background:var(--danger);
 }
 
-svg#wave{
-  display:block;
+.network-container{
   width:100%;
-  height:36px;
+  height:140px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  border-radius:8px;
+  background:rgba(0,0,0,0.2);
 }
 
-.wave-path{
+svg.network{
+  width:100%;
+  height:100%;
+}
+
+@keyframes pulse-glow{
+  0%, 100%{
+    filter:drop-shadow(0 0 2px currentColor);
+  }
+  50%{
+    filter:drop-shadow(0 0 8px currentColor);
+  }
+}
+
+@keyframes flow{
+  0%, 100%{
+    stroke-width:1;
+    opacity:.6;
+  }
+  50%{
+    stroke-width:2;
+    opacity:1;
+  }
+}
+
+.network-node{
+  transition:filter .2s ease, opacity .2s ease;
+  opacity:.7;
+}
+
+.network-node.active{
+  opacity:1;
+  animation:pulse-glow .6s ease-in-out infinite;
+}
+
+.network-link{
+  stroke-width:1;
   fill:none;
-  stroke:var(--signal-dim);
-  stroke-width:1.5;
+  opacity:.4;
+  transition:opacity .2s ease;
 }
 
-.wave-path.active{
-  stroke:var(--signal);
+.network-link.dim{
+  opacity:.2;
+}
+
+.network-link.active{
+  opacity:.9;
+  stroke-width:1.5;
+  animation:flow .5s ease-in-out infinite;
+}
+
+/* ============================================================
+   Titik jalan per garis (traveling dot), digerakkan oleh
+   <animateMotion> SVG native di app.js. Murni CSS untuk visibilitas
+   & glow saja -- pergerakannya sendiri di-handle oleh browser lewat
+   atribut SVG, bukan lewat CSS/JS loop.
+   ============================================================ */
+.network-dot{
+  opacity:0;
+  transition:opacity .2s ease;
+  pointer-events:none;
+}
+
+.network-dot.active{
+  opacity:.95;
+  filter:drop-shadow(0 0 2px currentColor);
 }
 
 .rail-footer{
@@ -529,4 +594,76 @@ textarea#msgInput::placeholder{
   align-items:center;
   justify-content:center;
   cursor:pointer;
+}
+
+.zoom-controls{
+  display:flex;
+  gap:6px;
+  margin-top:10px;
+  justify-content:center;
+}
+
+.zoom-btn{
+  width:28px;
+  height:28px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+  font-weight:600;
+  transition:all .15s ease;
+}
+
+.zoom-btn:hover{
+  border-color:var(--signal);
+  color:var(--signal);
+}
+
+.zoom-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--muted);
+  text-align:center;
+  margin-top:4px;
+}
+
+/* ============================================================
+   TAMBAHAN — animasi "node tumbuh dari tengah" & "signal pulse"
+   untuk visualisasi neural network. Murni CSS, tidak mengubah
+   variabel warna atau layout yang sudah ada.
+   ============================================================ */
+
+@keyframes node-pop{
+  0%{
+    opacity:0;
+    transform:translate(calc(140px - var(--nx, 140px)), calc(70px - var(--ny, 70px))) scale(.15);
+  }
+  55%{
+    opacity:1;
+  }
+  100%{
+    opacity:1;
+    transform:translate(0,0) scale(1);
+  }
+}
+
+.network-node.node-enter{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:node-pop .45s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+@keyframes line-draw{
+  from{
+    opacity:0;
+  }
+  to{
+    opacity:1;
+  }
+}
+
+.network-link.line-enter{
+  animation:line-draw .35s ease-out backwards;
 }

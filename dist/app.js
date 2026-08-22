@@ -10,7 +10,6 @@ const restoreBtn = document.getElementById("restoreBtn");
 const backupNote = document.getElementById("backupNote");
 const statusDot = document.getElementById("statusDot");
 const statusText = document.getElementById("statusText");
-const wavePath = document.getElementById("wavePath");
 const scrollEl = document.getElementById("scroll");
 const chatInner = document.getElementById("chatInner");
 const emptyState = document.getElementById("emptyState");
@@ -18,6 +17,11 @@ const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 const menuBtn = document.getElementById("menuBtn");
 const rail = document.getElementById("rail");
+const networkSvg = document.getElementById("networkSvg");
+const zoomInBtn = document.getElementById("zoomInBtn");
+const zoomOutBtn = document.getElementById("zoomOutBtn");
+const zoomResetBtn = document.getElementById("zoomResetBtn");
+const zoomLabel = document.getElementById("zoomLabel");
 
 menuBtn.addEventListener("click", () => rail.classList.toggle("open"));
 
@@ -30,9 +34,11 @@ function loadConfig() {
     return {};
   }
 }
+
 function saveConfig(cfg) {
   localStorage.setItem(LS_KEY, JSON.stringify(cfg));
 }
+
 function getDeviceId() {
   let cfg = loadConfig();
   if (!cfg.deviceId) {
@@ -123,13 +129,14 @@ function restoreFromLocal() {
     state.connected = true;
     setStatus("live", `terhubung · ${providerEl.value}`);
     sendBtn.disabled = false;
-    pulseWave();
+    activateNetwork();
   }
 }
 
 function toggleCustomRow() {
   customUrlRow.style.display = providerEl.value === "custom" ? "block" : "none";
 }
+
 providerEl.addEventListener("change", () => {
   toggleCustomRow();
   if (!modelEl.value)
@@ -153,33 +160,290 @@ saveKeyBtn.addEventListener("click", () => {
   state.connected = true;
   setStatus("live", `tersambung · ${provider}`);
   sendBtn.disabled = false;
-  pulseWave();
+  renderNetwork(1, false);
 });
 
-let waveTimer = null;
-function flatWave() {
-  wavePath.classList.remove("active");
-  wavePath.setAttribute("d", "M0,18 L260,18");
+/* ============================================================
+   NEURAL NETWORK VISUAL — ANIMASI SAJA.
+   Ini murni tampilan/visualisasi untuk kesan "AI sedang memproses".
+   TIDAK ADA perhitungan neural network sungguhan (tidak ada layer
+   weight, activation function, forward propagation, dsb) di sini —
+   hanya SVG + CSS animation untuk efek visual.
+   ============================================================ */
+
+let networkResetTimer = null; // timeout id: jeda 2 detik sebelum collapse
+let networkScale = 1;
+let isProcessing = false;
+
+const NODE_RADIUS = 5.5; // radius node kata biasa
+const MANDATORY_RADIUS = 6.5; // node wajib (kiri/kanan) sedikit lebih besar
+const MANDATORY_COLOR = "var(--signal)"; // pakai warna teal yang sudah ada, bukan warna acak
+
+const NET_CENTER_X = 140; // tetap 140,70 -- HARUS sama dengan yang dipakai node-pop
+const NET_CENTER_Y = 70; // di style.css (calc(140px - var(--nx)) dst), jangan diubah
+// supaya animasi "tumbuh dari tengah" tetap presisi.
+
+const STAGGER_MS = 45; // jeda animasi per "jarak kolom" ke tengah, biar terasa tumbuh dari tengah
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// Batas spacing dasar (dipertahankan dari versi sebelumnya), tapi akan
+// otomatis mengecil kalau jumlah kolom/baris makin banyak, supaya seluruh
+// jaringan tetap muat di dalam viewBox 280x140 yang sudah ada di HTML --
+// tidak perlu mengubah index.html ataupun style.css sama sekali.
+const BASE_COL_SPACING = 50;
+const BASE_ROW_SPACING = 12;
+const MARGIN_X = 28;
+const MARGIN_Y = 18;
+const MAX_PER_COLUMN = 10; // sama seperti konsep "10 titik per kolom" sebelumnya
+
+// Titik jalan (traveling dot) per garis, pakai <animateMotion> SVG native.
+// Ringan karena animasinya dijalankan oleh browser sendiri (bukan JS
+// setInterval/requestAnimationFrame loop), jadi tetap smooth walau
+// jumlah garis ratusan.
+const DOT_RADIUS = 1.6;
+const DOT_DUR_MIN = 0.75; // detik
+const DOT_DUR_MAX = 1.45; // detik, divariasikan biar gak semua dot jalan serempak/kaku
+
+function countWords(text) {
+  if (!text.trim()) return 1;
+  return text.trim().split(/\s+/).length;
 }
-function pulseWave() {
-  wavePath.classList.add("active");
-  let t = 0;
-  clearInterval(waveTimer);
-  waveTimer = setInterval(() => {
-    t += 1;
-    let d = "M0,18 ";
-    for (let x = 0; x <= 260; x += 8) {
-      const y = 18 + Math.sin(x * 0.15 + t * 0.5) * 8;
-      d += `L${x},${y.toFixed(1)} `;
+
+// Bagi wordCount ke beberapa kolom kata. Sisa pembagian yang tidak rata
+// diprioritaskan ke kolom yang PALING DEKAT KE TENGAH -- bukan ke kolom
+// paling kiri/kanan -- supaya distribusi visual tetap seimbang.
+function distributeWordColumns(wordCount) {
+  const n = Math.max(1, wordCount);
+  const numCols = Math.max(1, Math.ceil(n / MAX_PER_COLUMN));
+  const base = Math.floor(n / numCols);
+  let remainder = n - base * numCols;
+
+  const counts = new Array(numCols).fill(base);
+  const center = (numCols - 1) / 2;
+  const order = [...Array(numCols).keys()].sort(
+    (a, b) => Math.abs(a - center) - Math.abs(b - center),
+  );
+  for (let i = 0; i < remainder; i++) counts[order[i]]++;
+
+  return counts;
+}
+
+// Bangun posisi semua node. Struktur kolom penuh selalu:
+// [ NODE WAJIB KIRI, ...kolom kata di tengah..., NODE WAJIB KANAN ]
+// Kedua node wajib TIDAK PERNAH hilang, walau wordCount sangat kecil.
+// Semua kolom di-tengahkan secara vertikal & horizontal terhadap
+// (NET_CENTER_X, NET_CENTER_Y) yang sama dipakai animasi node-pop di CSS.
+function buildLayout(wordCount) {
+  const wordCols = distributeWordColumns(wordCount);
+  const allCounts = [1, ...wordCols, 1];
+  const numCols = allCounts.length;
+  const maxRows = Math.max(...allCounts);
+
+  const usableWidth = 280 - MARGIN_X * 2;
+  const usableHeight = 140 - MARGIN_Y * 2;
+  const colSpacing =
+    numCols > 1 ? Math.min(BASE_COL_SPACING, usableWidth / (numCols - 1)) : 0;
+  const rowSpacing =
+    maxRows > 1 ? Math.min(BASE_ROW_SPACING, usableHeight / (maxRows - 1)) : 0;
+
+  const centerCol = (numCols - 1) / 2;
+
+  return allCounts.map((count, colIdx) => {
+    const x = NET_CENTER_X + (colIdx - centerCol) * colSpacing;
+    const span = (count - 1) * rowSpacing;
+    const startY = NET_CENTER_Y - span / 2;
+    const nodes = [];
+    for (let r = 0; r < count; r++) {
+      nodes.push({
+        x,
+        y: startY + r * rowSpacing,
+        isMandatory: colIdx === 0 || colIdx === numCols - 1,
+      });
     }
-    wavePath.setAttribute("d", d);
-  }, 60);
+    return nodes;
+  });
 }
+
+function getColorForDot(idx) {
+  const hue = (idx * 30) % 360;
+  return `hsl(${hue}, 100%, 50%)`;
+}
+
+// Bikin satu <circle> kecil yang "jalan" sepanjang garis nodeA -> nodeB,
+// pakai <animateMotion path="..."> native SVG (bukan JS loop). Fungsi ini
+// HANYA dipanggil kalau animate === true (lihat renderNetwork), jadi
+// elemen titiknya memang tidak pernah ada di DOM sebelum user menekan
+// Enter / klik kirim -- bukan sekadar disembunyikan lewat opacity.
+function createTravelDot(nodeA, nodeB, color, idx, extraDelayMs) {
+  const dot = document.createElementNS(SVG_NS, "circle");
+  dot.setAttribute("r", DOT_RADIUS);
+  dot.setAttribute("class", "network-dot active");
+  dot.style.fill = color;
+
+  const dur =
+    DOT_DUR_MIN + (((idx * 37) % 100) / 100) * (DOT_DUR_MAX - DOT_DUR_MIN);
+  const beginDelay = (extraDelayMs || 0) + ((idx * 53) % 400);
+
+  const anim = document.createElementNS(SVG_NS, "animateMotion");
+  anim.setAttribute("path", `M${nodeA.x},${nodeA.y} L${nodeB.x},${nodeB.y}`);
+  anim.setAttribute("dur", dur.toFixed(2) + "s");
+  anim.setAttribute("repeatCount", "indefinite");
+  anim.setAttribute("begin", beginDelay + "ms");
+  dot.appendChild(anim);
+
+  return dot;
+}
+
+// Membangun ulang seluruh struktur node + garis.
+// Struktur SELALU: node wajib kiri -> kolom-kolom kata di tengah -> node
+// wajib kanan. Koneksi dibuat MESH PENUH antar kolom bertetangga (setiap
+// node terhubung ke SEMUA node di kolom sebelahnya), jadi tidak ada node
+// yang terisolasi.
+// Node & garis muncul dengan delay dihitung dari jaraknya ke kolom TENGAH,
+// jadi jaringan terasa "tumbuh dari tengah" ke kedua sisi.
+// PENTING: titik jalan (<animateMotion>) HANYA dibuat kalau animate ===
+// true, yaitu saat pesan benar-benar dikirim ke AI (activateNetworkProcessing).
+// Saat idle atau baru mengetik (updateNetworkByInput -> animate=false),
+// tidak ada satupun elemen titik yang dibuat.
+function renderNetwork(wordCount, animate = false) {
+  networkSvg.innerHTML = "";
+  const columns = buildLayout(wordCount);
+  const centerCol = (columns.length - 1) / 2;
+
+  // Garis (+ titik jalan kalau animate) di bawah node, mesh penuh antar
+  // kolom bersebelahan -- termasuk dari/ke node wajib.
+  let dotGlobalIdx = 0;
+  columns.forEach((column, colIdx) => {
+    if (colIdx >= columns.length - 1) return;
+    const nextColumn = columns[colIdx + 1];
+    const delay = Math.abs(colIdx - centerCol) * STAGGER_MS;
+    let lineColorIdx = colIdx * 7;
+    column.forEach((nodeA) => {
+      nextColumn.forEach((nodeB) => {
+        const color = getColorForDot(lineColorIdx);
+
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("x1", nodeA.x);
+        line.setAttribute("y1", nodeA.y);
+        line.setAttribute("x2", nodeB.x);
+        line.setAttribute("y2", nodeB.y);
+        line.setAttribute(
+          "class",
+          "network-link line-enter" + (animate ? " active" : ""),
+        );
+        line.style.stroke = color;
+        line.style.animationDelay = delay + "ms";
+        networkSvg.appendChild(line);
+
+        if (animate) {
+          const dot = createTravelDot(nodeA, nodeB, color, dotGlobalIdx, delay);
+          networkSvg.appendChild(dot);
+          dotGlobalIdx++;
+        }
+
+        lineColorIdx++;
+      });
+    });
+  });
+
+  // Node di atas garis & titik jalan, biar lampu/glow-nya tetap paling
+  // menonjol. Node wajib (kolom pertama & terakhir) pakai warna & radius
+  // berbeda supaya selalu terlihat jelas mana yang "wajib ada".
+  let globalIdx = 0;
+  columns.forEach((column, colIdx) => {
+    const delay = Math.abs(colIdx - centerCol) * STAGGER_MS;
+    column.forEach((node) => {
+      const circle = document.createElementNS(SVG_NS, "circle");
+      circle.setAttribute("cx", node.x);
+      circle.setAttribute("cy", node.y);
+      circle.setAttribute(
+        "r",
+        node.isMandatory ? MANDATORY_RADIUS : NODE_RADIUS,
+      );
+      circle.setAttribute(
+        "class",
+        "network-node node-enter" + (animate ? " active" : ""),
+      );
+      circle.style.fill = node.isMandatory
+        ? MANDATORY_COLOR
+        : getColorForDot(globalIdx);
+      circle.style.setProperty("--nx", node.x + "px");
+      circle.style.setProperty("--ny", node.y + "px");
+      circle.style.animationDelay = delay + "ms";
+      networkSvg.appendChild(circle);
+      globalIdx++;
+    });
+  });
+}
+
+function updateNetworkByInput() {
+  if (isProcessing) return;
+  const wordCount = countWords(msgInput.value);
+  renderNetwork(wordCount, false);
+}
+
+// Dipanggil saat pesan dikirim ke AI. wordCountOverride WAJIB dihitung dari
+// teks yang benar-benar dikirim (bukan dari msgInput.value setelah dikosongkan).
+// Semua node & garis langsung menyala BERSAMAAN dan berdenyut pelan lewat
+// CSS (.active), dan setiap garis punya titik jalannya sendiri yang looping
+// otomatis lewat <animateMotion> (native SVG, bukan JS loop).
+function activateNetworkProcessing(wordCountOverride) {
+  if (networkResetTimer) {
+    clearTimeout(networkResetTimer);
+    networkResetTimer = null;
+  }
+  isProcessing = true;
+  const wordCount = wordCountOverride || countWords(msgInput.value) || 1;
+  renderNetwork(wordCount, true);
+}
+
+// Dipanggil setelah balasan AI selesai (termasuk selesai efek ketik-per-huruf).
+// Jaringan TETAP menyala berdenyut selama 2 detik dulu, baru setelah itu
+// mengempis kembali ke satu titik di tengah (efek akhir yang sudah ada).
+function resetNetwork() {
+  if (networkResetTimer) clearTimeout(networkResetTimer);
+
+  networkResetTimer = setTimeout(() => {
+    isProcessing = false;
+    renderNetwork(1, false);
+    networkResetTimer = null;
+  }, 2000);
+}
+
+function activateNetwork() {
+  renderNetwork(1, false);
+}
+
 function setStatus(kind, label) {
   statusDot.className =
     "dot" + (kind === "live" ? " live" : kind === "down" ? " down" : "");
   statusText.textContent = label;
 }
+
+function updateZoomDisplay() {
+  networkSvg.style.transform = `scale(${networkScale})`;
+  zoomLabel.textContent = Math.round(networkScale * 100) + "%";
+}
+
+zoomInBtn.addEventListener("click", () => {
+  networkScale = Math.min(networkScale + 0.2, 3);
+  updateZoomDisplay();
+});
+
+zoomOutBtn.addEventListener("click", () => {
+  networkScale = Math.max(networkScale - 0.2, 0.5);
+  updateZoomDisplay();
+});
+
+zoomResetBtn.addEventListener("click", () => {
+  networkScale = 1;
+  updateZoomDisplay();
+});
+
+/* ============================================================
+   END NEURAL NETWORK VISUAL
+   ============================================================ */
 
 function scrollToBottom() {
   scrollEl.scrollTop = scrollEl.scrollHeight;
@@ -233,6 +497,7 @@ function addMessage(role, text) {
     scrollToBottom();
   }
 }
+
 function addTyping() {
   const wrap = document.createElement("div");
   wrap.className = "msg ai";
@@ -241,9 +506,11 @@ function addTyping() {
   chatInner.appendChild(wrap);
   scrollToBottom();
 }
+
 function removeTyping() {
   document.getElementById("typingRow")?.remove();
 }
+
 function addError(text) {
   const el = document.createElement("div");
   el.className = "error-note";
@@ -338,6 +605,7 @@ async function sendMessage() {
   if (!text || !state.connected) return;
   const cfg = loadConfig();
   const provider = cfg.provider;
+  const sentWordCount = countWords(text); // dihitung SEBELUM input dikosongkan
 
   state.history.push({ role: "user", content: text });
   addMessage("user", text);
@@ -345,6 +613,7 @@ async function sendMessage() {
   msgInput.style.height = "auto";
   sendBtn.disabled = true;
   addTyping();
+  activateNetworkProcessing(sentWordCount);
 
   try {
     const { url, headers, body } = buildRequest(provider, cfg, state.history);
@@ -377,6 +646,9 @@ async function sendMessage() {
   }
   sendBtn.disabled = false;
   msgInput.focus();
+  // Balasan AI (termasuk efek ketik) sudah selesai di titik ini.
+  // resetNetwork() akan menahan animasi processing 2 detik lagi sebelum collapse.
+  resetNetwork();
 }
 
 sendBtn.addEventListener("click", sendMessage);
@@ -389,6 +661,7 @@ msgInput.addEventListener("keydown", (e) => {
 msgInput.addEventListener("input", () => {
   msgInput.style.height = "auto";
   msgInput.style.height = Math.min(msgInput.scrollHeight, 160) + "px";
+  updateNetworkByInput();
 });
 
 backupBtn.addEventListener("click", async () => {
@@ -444,7 +717,7 @@ restoreBtn.addEventListener("click", async () => {
   }
 });
 
-flatWave();
+renderNetwork(1, false);
 toggleCustomRow();
 restoreFromLocal();
 renderStarterChips();

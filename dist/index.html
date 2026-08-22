@@ -85,9 +85,15 @@
           <span class="dot" id="statusDot"></span>
           <span id="statusText">key belum diatur</span>
         </div>
-        <svg id="wave" viewBox="0 0 260 36" preserveAspectRatio="none">
-          <path class="wave-path" id="wavePath" d="M0,18 L260,18" />
-        </svg>
+        <div class="network-container" id="networkContainer">
+          <svg class="network" id="networkSvg" viewBox="0 0 280 140" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" id="zoomOutBtn">−</button>
+          <button class="zoom-btn" id="zoomResetBtn">↺</button>
+          <button class="zoom-btn" id="zoomInBtn">+</button>
+        </div>
+        <div class="zoom-label" id="zoomLabel">100%</div>
       </div>
 
       <div class="rail-footer">
