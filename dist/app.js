@@ -1,4 +1,3 @@
-// ---------- Elements ----------
 const providerEl = document.getElementById("provider");
 const modelEl = document.getElementById("model");
 const apiKeyEl = document.getElementById("apiKey");
@@ -22,9 +21,6 @@ const rail = document.getElementById("rail");
 
 menuBtn.addEventListener("click", () => rail.classList.toggle("open"));
 
-// ---------- Local persistence ----------
-// This is a real desktop app (Tauri), not a hosted artifact — localStorage
-// is the right tool here, it's the user's own machine.
 const LS_KEY = "chanthecno_config_v1";
 
 function loadConfig() {
@@ -53,110 +49,67 @@ const defaultModels = {
   custom: "",
 };
 
-// ---------- Identity / system prompt ----------
-// Disisipkan otomatis ke tiap request supaya AI tahu konteks aplikasi
-// tempat ia berjalan. Bebas diedit teksnya sesuai kebutuhan.
-const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi desktop bernama chanthecno, dibuat<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>chanthecno</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="menu-btn" id="menuBtn">☰</div>
-
-<aside class="rail" id="rail">
-  <div class="brand">
-    <div class="brand-mark">O</div>
-    <div>
-      <div class="brand-word">chanthecno</div>
-      <div class="brand-sub">bawa API key-mu sendiri</div>
-    </div>
-  </div>
-
-  <div class="panel-label">Provider</div>
-  <div class="field-row">
-    <select class="field" id="provider">
-      <option value="anthropic">Claude (Anthropic)</option>
-      <option value="google">Gemini (Google)</option>
-      <option value="openai">GPT (OpenAI)</option>
-      <option value="custom">Custom endpoint</option>
-    </select>
-  </div>
-
-  <div class="field-row">
-    <input class="field" id="model" placeholder="model, mis: claude-sonnet-4-5">
-  </div>
-
-  <div class="panel-label">API Key</div>
-  <div class="field-row">
-    <input class="field" id="apiKey" type="password" placeholder="Paste API key kamu di sini">
-  </div>
-  <div class="field-row" id="customUrlRow" style="display:none;">
-    <input class="field" id="customUrl" placeholder="https://endpoint-kamu.com/...">
-  </div>
-
-  <button class="btn btn-primary" id="saveKeyBtn">Simpan lokal &amp; hubungkan</button>
-
-  <div class="panel-label">Backup (opsional)</div>
-  <div class="field-row">
-    <input class="field" id="vpsUrl" placeholder="https://vps-kamu.com (kosongkan jika tidak pakai)">
-  </div>
-  <button class="btn btn-ghost" id="backupBtn">Cadangkan key terenkripsi ke server</button>
-  <button class="btn btn-ghost" id="restoreBtn">Pulihkan dari server</button>
-  <div class="note" id="backupNote"></div>
-
-  <div class="signal-box">
-    <div class="signal-status">
-      <span class="dot" id="statusDot"></span>
-      <span id="statusText">key belum diatur</span>
-    </div>
-    <svg id="wave" viewBox="0 0 260 36" preserveAspectRatio="none">
-      <path class="wave-path" id="wavePath" d="M0,18 L260,18"/>
-    </svg>
-  </div>
-
-  <div class="rail-footer">
-    API key kamu disimpan <b>di perangkat ini saja</b> secara default, dan
-    request dikirim langsung dari sini ke provider. Server chanthecno (kalau ada)
-    tidak pernah melihat isi obrolanmu.
-  </div>
-</aside>
-
-<main class="chat-col">
-  <div class="chat-scroll" id="scroll">
-    <div class="chat-inner" id="chatInner">
-      <div class="empty-state" id="emptyState">
-        <div class="empty-title">Halo, ini chanthecno 👋</div>
-        <div class="empty-sub">Pilih provider &amp; paste API key kamu di panel kiri, lalu mulai ngobrol. Semua berjalan lokal di perangkatmu.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="input-bar">
-    <div class="input-inner">
-      <textarea id="msgInput" rows="1" placeholder="Tulis pesan..."></textarea>
-      <button class="send-btn" id="sendBtn" disabled>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M4 20L20 12L4 4V10L14 12L4 14V20Z" fill="currentColor"/>
-        </svg>
-      </button>
-    </div>
-    <div class="hint">Enter untuk kirim · Shift+Enter untuk baris baru</div>
-  </div>
-</main>
-
-<script src="app.js"></script>
-</body>
-</html>
- oleh Candri — seorang siswa yang bercita-cita menjadi programmer sejak usia 15 tahun. Candri suka curhat denganmu, jadi dengarkan dengan hangat, sabar, dan tanpa menghakimi. Kalau ditanya kamu jalan di mana atau siapa pembuatmu, jawab dengan jujur bahwa kamu berjalan di no buatan Candri.`;
+const SYSTEM_PROMPT = `Kamu adalah asisten AI yang berjalan di dalam aplikasi desktop bernama chanthecno, dibuat oleh Candri — seorang siswa yang bercita-cita menjadi programmer sejak usia 15 tahun. Candri suka curhat denganmu, jadi dengarkan dengan hangat, sabar, dan tanpa menghakimi. Kalau ditanya kamu jalan di mana atau siapa pembuatmu, jawab dengan jujur bahwa kamu berjalan di aplikasi chanthecno buatan Candri.`;
 
 let state = { connected: false, history: [] };
+
+const starterChipsEl = document.getElementById("starterChips");
+
+const STARTER_PROMPTS = [
+  {
+    label: "Cara pakai Claude",
+    userText: "Gimana cara menghubungkan chanthecno ke Claude?",
+    aiText:
+      "Gampang. Di panel kiri, pada bagian Provider pilih **Claude (Anthropic)**. Di kolom model isi mis. `claude-sonnet-4-5`. Ambil API key dari console.anthropic.com lalu paste ke kolom API Key. Terakhir klik **Simpan lokal & hubungkan** — key kamu cuma disimpan di perangkat ini, gak pernah dikirim ke server chanthecno.",
+  },
+  {
+    label: "Cara pakai Gemini",
+    userText: "Gimana cara menghubungkan chanthecno ke Gemini?",
+    aiText:
+      "Pilih Provider **Gemini (Google)** di panel kiri. Isi model, mis. `gemini-2.5-flash`. Ambil API key gratis dari Google AI Studio (aistudio.google.com), paste ke kolom API Key, lalu klik **Simpan lokal & hubungkan**.",
+  },
+  {
+    label: "Cara pakai ChatGPT",
+    userText: "Gimana cara menghubungkan chanthecno ke ChatGPT?",
+    aiText:
+      "Pilih Provider **GPT (OpenAI)**. Isi model, mis. `gpt-4.1`. Ambil API key dari platform.openai.com/api-keys, paste ke kolom API Key, lalu klik **Simpan lokal & hubungkan**.",
+  },
+  {
+    label: "Cara pakai Custom endpoint",
+    userText: "Gimana cara pakai provider custom di chanthecno?",
+    aiText:
+      "Pilih Provider **Custom endpoint**. Nanti muncul kolom tambahan buat isi URL API, contoh kalau pakai Groq: `https://api.groq.com/openai/v1/chat/completions`. Isi juga model (mis. `llama-3.3-70b-versatile`) dan API key dari provider itu. Format request & balasannya mengikuti standar OpenAI-compatible, jadi kebanyakan provider gratis/murah bisa dipakai di sini.",
+  },
+  {
+    label: "Tentang aplikasi ini",
+    userText: "Aplikasi chanthecno ini apa dan siapa yang bikin?",
+    aiText:
+      "chanthecno adalah chat client AI desktop, dibuat oleh **Candri**. Fitur yang sudah ada: bawa API key sendiri (BYOK) buat Claude, Gemini, ChatGPT, atau endpoint custom apa pun; key disimpan lokal di perangkatmu; opsi backup key terenkripsi ke VPS pribadi; dan tampilan chat dengan efek mengetik.",
+  },
+];
+
+function renderStarterChips() {
+  if (!starterChipsEl) return;
+  starterChipsEl.innerHTML = "";
+  STARTER_PROMPTS.forEach((p) => {
+    const btn = document.createElement("button");
+    btn.className = "chip";
+    btn.type = "button";
+    btn.textContent = p.label;
+    btn.addEventListener("click", () => runStarterPrompt(p));
+    starterChipsEl.appendChild(btn);
+  });
+}
+
+async function runStarterPrompt(p) {
+  state.history.push({ role: "user", content: p.userText });
+  addMessage("user", p.userText);
+  addTyping();
+  await new Promise((r) => setTimeout(r, 350));
+  removeTyping();
+  state.history.push({ role: "assistant", content: p.aiText });
+  await addMessage("ai", p.aiText);
+}
 
 function restoreFromLocal() {
   const cfg = loadConfig();
@@ -203,7 +156,6 @@ saveKeyBtn.addEventListener("click", () => {
   pulseWave();
 });
 
-// ---------- Signal waveform ----------
 let waveTimer = null;
 function flatWave() {
   wavePath.classList.remove("active");
@@ -229,9 +181,39 @@ function setStatus(kind, label) {
   statusText.textContent = label;
 }
 
-// ---------- Chat rendering ----------
 function scrollToBottom() {
   scrollEl.scrollTop = scrollEl.scrollHeight;
+}
+
+function renderMarkdown(text) {
+  let safe = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  safe = safe.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  safe = safe.replace(/(^|[^*])\*(?!\*)(.+?)\*(?!\*)/g, "$1<i>$2</i>");
+  safe = safe.replace(/`(.+?)`/g, "<code>$1</code>");
+  safe = safe.replace(/\n/g, "<br>");
+
+  return safe;
+}
+
+function typeMessage(bubble, text, speed = 20) {
+  let i = 0;
+  const chunkSize = 1;
+  return new Promise((resolve) => {
+    const timer = setInterval(() => {
+      i += chunkSize;
+      bubble.textContent = text.slice(0, i);
+      scrollToBottom();
+      if (i >= text.length) {
+        clearInterval(timer);
+        bubble.innerHTML = renderMarkdown(text);
+        resolve();
+      }
+    }, speed);
+  });
 }
 
 function addMessage(role, text) {
@@ -242,9 +224,14 @@ function addMessage(role, text) {
     role === "ai"
       ? `<div class="avatar"></div><div class="bubble"></div>`
       : `<div class="bubble"></div>`;
-  wrap.querySelector(".bubble").textContent = text;
+  const bubble = wrap.querySelector(".bubble");
   chatInner.appendChild(wrap);
-  scrollToBottom();
+  if (role === "ai") {
+    return typeMessage(bubble, text);
+  } else {
+    bubble.textContent = text;
+    scrollToBottom();
+  }
 }
 function addTyping() {
   const wrap = document.createElement("div");
@@ -265,7 +252,6 @@ function addError(text) {
   scrollToBottom();
 }
 
-// ---------- Provider request builders ----------
 function buildRequest(provider, cfg, history) {
   const model = cfg.model || defaultModels[provider];
   if (provider === "anthropic") {
@@ -277,7 +263,6 @@ function buildRequest(provider, cfg, history) {
         "anthropic-version": "2023-06-01",
         "anthropic-dangerous-direct-browser-access": "true",
       },
-      // Anthropic pakai field 'system' terpisah, bukan role di messages
       body: {
         model,
         max_tokens: 1024,
@@ -293,7 +278,6 @@ function buildRequest(provider, cfg, history) {
         "content-type": "application/json",
         Authorization: "Bearer " + cfg.apiKey,
       },
-      // OpenAI-style: system prompt dikirim sebagai pesan pertama role 'system'
       body: {
         model,
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history],
@@ -308,17 +292,12 @@ function buildRequest(provider, cfg, history) {
     return {
       url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cfg.apiKey}`,
       headers: { "content-type": "application/json" },
-      // Gemini pakai field systemInstruction terpisah
       body: {
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents,
       },
     };
   }
-  // custom (mis. Groq, atau endpoint OpenAI-compatible lain)
-  // FIX: sebelumnya 'model' tidak disertakan di body -> error 400
-  // "property 'model' is missing" dari Groq/OpenAI-compatible API.
-  // System prompt dikirim sama seperti OpenAI: pesan pertama role 'system'.
   return {
     url: cfg.customUrl,
     headers: {
@@ -337,10 +316,6 @@ function extractReply(provider, data) {
     const t = data?.content?.find((c) => c.type === "text");
     if (t) return t.text;
   }
-  // FIX: 'custom' digabung ke sini karena provider OpenAI-compatible
-  // (Groq, dst.) membalas dengan struktur choices[0].message.content
-  // yang sama persis dengan OpenAI. Sebelumnya 'custom' tidak dicek
-  // di sini sama sekali, jadi jawabannya jatuh ke fallback JSON.stringify.
   if (provider === "openai" || provider === "custom") {
     if (data?.choices?.[0]?.message?.content)
       return data.choices[0].message.content;
@@ -358,7 +333,6 @@ function extractReply(provider, data) {
   return JSON.stringify(data);
 }
 
-// ---------- Send flow ----------
 async function sendMessage() {
   const text = msgInput.value.trim();
   if (!text || !state.connected) return;
@@ -394,7 +368,7 @@ async function sendMessage() {
         );
       } else {
         state.history.push({ role: "assistant", content: reply });
-        addMessage("ai", reply);
+        await addMessage("ai", reply);
       }
     }
   } catch (e) {
@@ -417,7 +391,6 @@ msgInput.addEventListener("input", () => {
   msgInput.style.height = Math.min(msgInput.scrollHeight, 160) + "px";
 });
 
-// ---------- Optional VPS backup/restore (encrypted at rest server-side) ----------
 backupBtn.addEventListener("click", async () => {
   const cfg = loadConfig();
   const vps = vpsUrlEl.value.trim();
@@ -471,7 +444,7 @@ restoreBtn.addEventListener("click", async () => {
   }
 });
 
-// ---------- Init ----------
 flatWave();
 toggleCustomRow();
 restoreFromLocal();
+renderStarterChips();
